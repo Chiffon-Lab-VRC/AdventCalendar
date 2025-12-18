@@ -8,10 +8,32 @@ interface SidebarProps {
     authorAvatar?: string;
 }
 
+interface TocItem {
+    id: string;
+    label: string;
+    level: number;
+}
+
 export function Sidebar({ authorName, authorBio, authorAvatar }: SidebarProps) {
     const [activeId, setActiveId] = useState<string>('');
+    const [tocItems, setTocItems] = useState<TocItem[]>([]);
 
     useEffect(() => {
+        // 見出しを動的に取得
+        const elements = Array.from(document.querySelectorAll('.prose h1, .prose h2, .prose h3'));
+        const items = elements.map((element) => {
+            const clone = element.cloneNode(true) as HTMLElement;
+            const anchor = clone.querySelector('.anchor-link');
+            if (anchor) anchor.remove();
+            return {
+                id: element.id,
+                label: clone.textContent || '',
+                level: Number(element.tagName.substring(1)),
+            };
+        }).filter(item => item.id); // IDがないものは除外
+
+        setTocItems(items);
+
         const observer = new IntersectionObserver(
             (entries) => {
                 entries.forEach((entry) => {
@@ -21,32 +43,24 @@ export function Sidebar({ authorName, authorBio, authorAvatar }: SidebarProps) {
                 });
             },
             {
-                rootMargin: '-20% 0px -35% 0px',
+                rootMargin: '-100px 0px -66% 0px',
             }
         );
 
-        // すべての見出しを監視
-        const headings = document.querySelectorAll('h1[id], h2[id], h3[id]');
-        headings.forEach((heading) => observer.observe(heading));
+        elements.forEach((element) => observer.observe(element));
 
-        return () => {
-            headings.forEach((heading) => observer.unobserve(heading));
-        };
+        return () => observer.disconnect();
     }, []);
 
-    const tocItems = [
-        { id: 'はじめに', label: 'はじめに', level: 1 },
-        { id: 'この記事で話すこと', label: 'この記事で話すこと', level: 1 },
-        { id: 'ますはじめに', label: 'ますはじめに', level: 1 },
-        { id: 'google-antigravityってなんぞや', label: 'Google Antigravityってなんぞや？', level: 2 },
-        { id: 'これをつかって何ができる', label: 'これをつかって何ができる？', level: 2 },
-        { id: 'antigravityのすげーとこ', label: 'Antigravityのすげーとこ！', level: 1 },
-        { id: '1まず設計から手伝ってくれる', label: '1. まず設計から手伝ってくれる！', level: 2 },
-        { id: '2環境構築までしてくれる', label: '2. 環境構築までしてくれる！', level: 2 },
-        { id: '3エラーの修正が自動', label: '3. エラーの修正が自動！', level: 2 },
-        { id: '4指示が割と適当でも何とかなる時がある', label: '4. 指示が割と適当でも何とかなる！', level: 2 },
-        { id: 'まとめ', label: 'まとめ', level: 1 },
-    ];
+    const handleClick = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
+        e.preventDefault();
+        const element = document.getElementById(id);
+        if (element) {
+            element.scrollIntoView({ behavior: 'smooth' });
+            setActiveId(id);
+            window.history.pushState(null, '', `#${id}`);
+        }
+    };
 
     return (
         <aside className="sticky top-20 space-y-6">
@@ -74,7 +88,8 @@ export function Sidebar({ authorName, authorBio, authorAvatar }: SidebarProps) {
                         <a
                             key={item.id}
                             href={`#${item.id}`}
-                            className={`group relative flex items-center py-1.5 text-sm transition-colors ${item.level === 2 ? 'ml-4' : ''
+                            onClick={(e) => handleClick(e, item.id)}
+                            className={`group relative flex items-center py-1.5 text-sm transition-colors ${item.level >= 2 ? 'ml-4' : ''
                                 } ${activeId === item.id
                                     ? 'font-medium text-orange-600'
                                     : 'text-neutral-600 hover:text-orange-600'

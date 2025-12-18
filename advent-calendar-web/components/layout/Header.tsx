@@ -14,20 +14,6 @@ export function Header() {
                             しふぉんらぼ ぶいみみアドベントカレンダー
                         </span>
                     </Link>
-                    <nav className="flex items-center space-x-6 text-sm font-medium">
-                        <Link
-                            href="/editor"
-                            className="transition-colors hover:text-orange-600 text-gray-600"
-                        >
-                            Editor
-                        </Link>
-                        <Link
-                            href="/about"
-                            className="transition-colors hover:text-orange-600 text-gray-600"
-                        >
-                            About
-                        </Link>
-                    </nav>
                 </div>
             </div>
         </header>

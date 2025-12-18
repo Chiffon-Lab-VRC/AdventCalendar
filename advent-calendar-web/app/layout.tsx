@@ -12,7 +12,7 @@ const notoSansJP = Noto_Sans_JP({
 });
 
 export const metadata: Metadata = {
-  title: "Advent Calendar 2024",
+  title: "Advent Calendar 2025",
   description: "My technical advent calendar",
 };
 
